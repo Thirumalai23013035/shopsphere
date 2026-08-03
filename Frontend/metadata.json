@@ -1,0 +1,6 @@
+{
+  "name": "ShopSphere Application",
+  "description": "Full-Stack ShopSphere E-Commerce Application with React frontend and Node.js backend",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

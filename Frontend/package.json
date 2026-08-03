@@ -1,0 +1,32 @@
+{
+  "name": "shopsphere-application",
+  "version": "1.0.0",
+  "description": "ShopSphere E-Commerce Backend Service",
+  "main": "Backend/server.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@vitejs/plugin-react": "^6.0.5",
+    "axios": "^1.19.0",
+    "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.10.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.28.0",
+    "mongoose": "^9.7.4",
+    "multer": "^2.2.0",
+    "postcss": "^8.5.25",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2",
+    "recharts": "^3.10.1",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.2.0"
+  }
+}
