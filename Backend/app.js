@@ -1,7 +1,20 @@
 const express = require("express")
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
 const app = express();
+
+const corsOptions = {
+    origin: [
+        "http://localhost:5173", 
+        "https://shopsphere-weld-nu.vercel.app"
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(cookieParser());
 
