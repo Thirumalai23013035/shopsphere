@@ -17,7 +17,10 @@ import {
   Image as ImageIcon,
   Check,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  FileJson,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 const AdminProductManagement = () => {
@@ -48,6 +51,39 @@ const AdminProductManagement = () => {
 
   const [imagePreview, setImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Bulk upload state
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkJson, setBulkJson] = useState('');
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+
+  const BULK_SAMPLE = JSON.stringify([
+    { name: 'Product 1', description: 'Desc 1', price: 99, category: 'Electronics', brand: 'Brand A', stock: 20 },
+    { name: 'Product 2', description: 'Desc 2', price: 49, category: 'Fashion', brand: 'Brand B', stock: 15 }
+  ], null, 2);
+
+  const handleBulkUpload = async () => {
+    setBulkSubmitting(true);
+    setError('');
+    setSuccess('');
+    try {
+      const parsed = JSON.parse(bulkJson);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        setError('JSON must be a non-empty array of products.');
+        return;
+      }
+      const res = await api.post('/products/seed', parsed);
+      setSuccess(`✅ ${res.data?.products?.length ?? parsed.length} products added successfully!`);
+      setBulkJson('');
+      setBulkOpen(false);
+      fetchProducts();
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid JSON or upload failed.');
+    } finally {
+      setBulkSubmitting(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -233,14 +269,71 @@ const AdminProductManagement = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-2xl shadow-xs flex items-center gap-2 transition active:scale-95 shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Add New Product
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-2xl shadow-xs flex items-center gap-2 transition active:scale-95 shrink-0"
+          >
+            <Plus className="w-4 h-4" /> Add Product
+          </button>
+          <button
+            type="button"
+            onClick={() => setBulkOpen((prev) => !prev)}
+            className="px-5 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-2xl shadow-xs flex items-center gap-2 transition active:scale-95 shrink-0"
+          >
+            <FileJson className="w-4 h-4" />
+            Bulk Upload
+            {bulkOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+        </div>
       </div>
+
+      {/* Bulk JSON Upload Panel */}
+      {bulkOpen && (
+        <div className="bg-slate-900 text-slate-100 rounded-3xl border border-slate-700 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileJson className="w-5 h-5 text-indigo-400" />
+              <h2 className="text-sm font-extrabold">Bulk Product Upload (JSON)</h2>
+            </div>
+            <button
+              onClick={() => setBulkJson(BULK_SAMPLE)}
+              className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 px-3 py-1.5 rounded-lg transition"
+            >
+              Load Sample
+            </button>
+          </div>
+          <p className="text-xs text-slate-400">Paste a JSON array of products. Each must have: <code className="text-indigo-300">name, description, price, category, brand, stock</code>.</p>
+          <textarea
+            rows={10}
+            value={bulkJson}
+            onChange={(e) => setBulkJson(e.target.value)}
+            placeholder={BULK_SAMPLE}
+            className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500 resize-y"
+          />
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              onClick={() => { setBulkOpen(false); setBulkJson(''); }}
+              className="flex-1 py-2.5 border border-slate-600 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-800 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleBulkUpload}
+              disabled={bulkSubmitting || !bulkJson.trim()}
+              className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
+            >
+              {bulkSubmitting ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              {bulkSubmitting ? 'Uploading...' : 'Upload All Products'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-2xl flex items-center gap-2">
