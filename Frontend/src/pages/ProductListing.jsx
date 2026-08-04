@@ -3,17 +3,20 @@ import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
-import SortSelector, { sortProductsArray } from '../components/SortSelector';
-import { SlidersHorizontal } from 'lucide-react';
+import SortSelector from '../components/SortSelector';
+import { SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const ITEMS_PER_PAGE = 12;
 
 const ProductListing = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [products, setProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters state initialized from URL
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
   const [brand, setBrand] = useState(searchParams.get('brand') || '');
@@ -24,18 +27,17 @@ const ProductListing = () => {
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Categories & Brands list for filters
   const categoriesList = ['Electronics', 'Fashion', 'Footwear', 'Home & Kitchen', 'Accessories', 'Beauty'];
   const brandsList = ['Apple', 'Samsung', 'Nike', 'Adidas', 'Sony', 'Puma', 'Logitech'];
 
   useEffect(() => {
-    // Sync state if URL changes externally
     setSearch(searchParams.get('search') || '');
     setCategory(searchParams.get('category') || '');
     setBrand(searchParams.get('brand') || '');
     setMinPrice(searchParams.get('minPrice') || '');
     setMaxPrice(searchParams.get('maxPrice') || '');
     setSort(searchParams.get('sort') || 'featured');
+    setPage(Number(searchParams.get('page')) || 1);
   }, [searchParams]);
 
   useEffect(() => {
@@ -50,29 +52,17 @@ const ProductListing = () => {
         if (brand) params.append('brand', brand);
         if (minPrice) params.append('minPrice', minPrice);
         if (maxPrice) params.append('maxPrice', maxPrice);
-        if (sort) params.append('sort', sort);
+        if (sort && sort !== 'featured') params.append('sort', sort);
         params.append('page', page);
+        params.append('limit', ITEMS_PER_PAGE);
 
-        let items = [];
-        try {
-          // If sorting is specified, query sort endpoint first for backend-level sorting
-          const endpoint = sort && sort !== 'featured' ? `/products/sort?${params.toString()}` : `/products?${params.toString()}`;
-          const res = await api.get(endpoint);
-          const data = res.data;
-          items = Array.isArray(data) ? data : (data.products || data.product || []);
-        } catch (err) {
-          // Fallback to basic endpoint if sort route fails
-          const fallbackRes = await api.get(`/products?${params.toString()}`);
-          const data = fallbackRes.data;
-          items = Array.isArray(data) ? data : (data.products || data.product || []);
-        }
+        const res = await api.get(`/products?${params.toString()}`);
+        const data = res.data;
 
-        // Apply client-side sorting guarantee
-        if (sort) {
-          items = sortProductsArray(items, sort);
-        }
-
+        const items = data.products || data.product || (Array.isArray(data) ? data : []);
         setProducts(items);
+        setTotalProducts(data.totalProducts ?? items.length);
+        setTotalPages(data.totalPages ?? 1);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError('Failed to fetch products. Please check connection or try again.');
@@ -96,6 +86,7 @@ const ProductListing = () => {
     setBrand(nextBrand);
     setMinPrice(nextMin);
     setMaxPrice(nextMax);
+    setPage(1);
 
     const newParams = {};
     if (nextSearch) newParams.search = nextSearch;
@@ -121,13 +112,37 @@ const ProductListing = () => {
 
   const handleSortChange = (newSort) => {
     setSort(newSort);
+    setPage(1);
     const newParams = Object.fromEntries(searchParams.entries());
     if (newSort && newSort !== 'featured') {
       newParams.sort = newSort;
     } else {
       delete newParams.sort;
     }
+    delete newParams.page;
     setSearchParams(newParams);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const newParams = Object.fromEntries(searchParams.entries());
+    if (newPage > 1) {
+      newParams.page = String(newPage);
+    } else {
+      delete newParams.page;
+    }
+    setSearchParams(newParams);
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const delta = 2;
+    const left = Math.max(1, page - delta);
+    const right = Math.min(totalPages, page + delta);
+    for (let i = left; i <= right; i++) pages.push(i);
+    return pages;
   };
 
   return (
@@ -137,12 +152,13 @@ const ProductListing = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Product Catalog</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Showing {products.length} product{products.length === 1 ? '' : 's'}
+            {loading
+              ? 'Loading...'
+              : `Showing ${products.length} of ${totalProducts} product${totalProducts === 1 ? '' : 's'} — Page ${page} of ${totalPages}`}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Mobile Filter Toggle */}
           <button
             onClick={() => setMobileFilterOpen(true)}
             className="md:hidden flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition"
@@ -151,30 +167,19 @@ const ProductListing = () => {
             Filters
           </button>
 
-          {/* Sort Selector Component */}
-          <SortSelector
-            currentSort={sort}
-            onSortChange={handleSortChange}
-            variant="dropdown"
-          />
+          <SortSelector currentSort={sort} onSortChange={handleSortChange} variant="dropdown" />
         </div>
       </div>
 
-      {/* Quick Sort Tabs Bar */}
+      {/* Quick Sort Pills */}
       <div className="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-200/60 flex items-center justify-between gap-2 overflow-x-auto">
         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-2 shrink-0 hidden sm:inline-block">
           Quick Sort:
         </span>
-        <SortSelector
-          currentSort={sort}
-          onSortChange={handleSortChange}
-          variant="pills"
-          label=""
-        />
+        <SortSelector currentSort={sort} onSortChange={handleSortChange} variant="pills" label="" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Filter Sidebar Component */}
         <FilterSidebar
           filters={{ search, category, brand, minPrice, maxPrice }}
           onFilterChange={handleFilterChange}
@@ -183,14 +188,13 @@ const ProductListing = () => {
           brandsList={brandsList}
           isOpen={mobileFilterOpen}
           onClose={() => setMobileFilterOpen(false)}
-          totalResults={products.length}
+          totalResults={totalProducts}
         />
 
-        {/* Product Grid Area */}
-        <main className="md:col-span-3">
+        <main className="md:col-span-3 space-y-6">
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
+              {Array.from({ length: ITEMS_PER_PAGE }).map((_, n) => (
                 <div key={n} className="bg-white rounded-2xl p-4 border border-slate-200 animate-pulse space-y-3">
                   <div className="w-full h-44 bg-slate-200 rounded-xl"></div>
                   <div className="h-4 bg-slate-200 rounded w-3/4"></div>
@@ -213,13 +217,66 @@ const ProductListing = () => {
               <p className="text-3xl mb-2">🔍</p>
               <h3 className="text-base font-bold text-slate-800">No products found</h3>
               <p className="text-xs text-slate-500 mt-1">
-                Try adjusting your search query or clear applied filters.
+                Try adjusting your search or clear applied filters.
               </p>
               <button
                 onClick={handleClearFilters}
                 className="mt-4 px-4 py-2 bg-slate-800 text-white font-semibold text-xs rounded-xl"
               >
                 Clear All Filters
+              </button>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page <= 1}
+                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Prev
+              </button>
+
+              {page > 3 && (
+                <>
+                  <button onClick={() => handlePageChange(1)} className="w-8 h-8 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition">
+                    1
+                  </button>
+                  {page > 4 && <span className="text-slate-400 text-xs px-1">…</span>}
+                </>
+              )}
+
+              {getPageNumbers().map((p) => (
+                <button
+                  key={p}
+                  onClick={() => handlePageChange(p)}
+                  className={`w-8 h-8 text-xs font-bold rounded-xl border transition ${
+                    p === page
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+
+              {page < totalPages - 2 && (
+                <>
+                  {page < totalPages - 3 && <span className="text-slate-400 text-xs px-1">…</span>}
+                  <button onClick={() => handlePageChange(totalPages)} className="w-8 h-8 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition">
+                    {totalPages}
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page >= totalPages}
+                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                Next <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           )}

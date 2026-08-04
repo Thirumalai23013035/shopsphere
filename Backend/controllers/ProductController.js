@@ -74,26 +74,74 @@ const AddProduct = (asyncHandler(async(req,res)=>{
 
 const getAllProducts = (asyncHandler(async(req,res)=>{
 
-    const AllProducts = await Product.find();
+    const {
+        search, keyword,
+        category, brand,
+        minPrice, maxPrice,
+        sort, sortBy, order,
+        page, limit
+    } = req.query;
 
-    if(AllProducts.length==0)
-    {
-        return res.status(404).json({
-            success:true,
-            count:AllProducts.length,
-            message:"Products not found"
-        })
+    // Build filter
+    let filter = {};
+
+    const searchKey = search || keyword;
+    if (searchKey) {
+        filter.$or = [
+            { name: { $regex: searchKey, $options: 'i' } },
+            { brand: { $regex: searchKey, $options: 'i' } },
+            { category: { $regex: searchKey, $options: 'i' } },
+            { description: { $regex: searchKey, $options: 'i' } }
+        ];
     }
 
+    if (category) filter.category = { $regex: category, $options: 'i' };
+    if (brand) filter.brand = { $regex: brand, $options: 'i' };
+
+    if (minPrice || maxPrice) {
+        filter.price = {};
+        if (minPrice) filter.price.$gte = Number(minPrice);
+        if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    // Build sort
+    let sortOption = { _id: -1 }; // default: newest first
+    const selectedSort = sort || sortBy || (order === 'desc' ? 'price-desc' : '');
+    if (selectedSort === 'price-asc' || selectedSort === 'asc') {
+        sortOption = { price: 1 };
+    } else if (selectedSort === 'price-desc' || selectedSort === 'desc') {
+        sortOption = { price: -1 };
+    } else if (selectedSort === 'popularity' || selectedSort === 'popular') {
+        sortOption = { rating: -1 };
+    } else if (selectedSort === 'rating') {
+        sortOption = { rating: -1 };
+    } else if (selectedSort === 'newest') {
+        sortOption = { _id: -1 };
+    }
+
+    // Pagination
+    const pageNum  = Math.max(1, Number(page)  || 1);
+    const limitNum = Math.min(50, Math.max(1, Number(limit) || 12)); // default 12 per page, max 50
+    const skip = (pageNum - 1) * limitNum;
+
+    const totalProducts = await Product.countDocuments(filter);
+    const totalPages    = Math.ceil(totalProducts / limitNum);
+
+    const products = await Product.find(filter)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limitNum);
+
     return res.status(200).json({
-
-        success:true,
-        count:AllProducts.length,
-        message:"Successfully fetched all products",
-        products:AllProducts
-
-       
-    })
+        success: true,
+        count: products.length,
+        totalProducts,
+        totalPages,
+        currentPage: pageNum,
+        limit: limitNum,
+        message: "Successfully fetched all products",
+        products,
+    });
 }))
 
 const addManyProducts = (asyncHandler(async(req,res)=>{
