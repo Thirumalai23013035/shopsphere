@@ -1,4 +1,6 @@
-# ShopSphere
+# 🛒 ShopSphere – Full Stack E-Commerce Platform
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20ShopSphere-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://shopsphere-weld-nu.vercel.app/)
 
 ShopSphere is a modern, full-stack e-commerce application built with the MERN stack (MongoDB, Express, React, Node.js). 
 
