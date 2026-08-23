@@ -14,8 +14,15 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { user, register } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if user is already logged in
+  React.useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const validateEmail = (val) => {
     return /\S+@\S+\.\S+/.test(val);
@@ -49,10 +56,8 @@ const Register = () => {
     try {
       setLoading(true);
       await register(name, email, password);
-      setSuccess('Account created successfully! Logging you in...');
-      setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 800);
+      setSuccess('Account created successfully! Redirecting...');
+      navigate('/', { replace: true });
     } catch (err) {
       setError(
         err.response?.data?.message || err.response?.data?.error || 'Registration failed. Email might already be in use.'

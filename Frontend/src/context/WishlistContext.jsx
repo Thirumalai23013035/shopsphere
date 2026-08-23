@@ -87,6 +87,7 @@ export const WishlistProvider = ({ children }) => {
       setWishlist(normalized);
     } catch (error) {
       console.error('Error fetching wishlist from server:', error);
+      setWishlist([]);
     } finally {
       setLoading(false);
     }

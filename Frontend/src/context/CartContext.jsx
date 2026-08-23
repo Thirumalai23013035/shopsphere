@@ -87,6 +87,7 @@ export const CartProvider = ({ children }) => {
       setItems(normalized);
     } catch (error) {
       console.error('Error fetching cart from backend:', error);
+      setItems([]);
     } finally {
       setLoading(false);
     }
