@@ -210,7 +210,7 @@ const SingleOrderPage = () => {
                     )}
                     <div>
                       <Link
-                        to={`/product/${productId}`}
+                        to={`/products/${productId}`}
                         className="text-xs font-bold text-slate-900 hover:text-indigo-600 transition line-clamp-1 flex items-center gap-1 group"
                       >
                         {name}

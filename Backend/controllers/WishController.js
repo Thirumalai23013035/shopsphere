@@ -32,13 +32,16 @@ const  wishlistAdd = (asynchandler(async(req,res)=>{
 
 const getWishList = (asynchandler(async(req,res)=>{
 
-    const wishlist = await WishList.find().populate("productId","name brand price")
+    const userId = req.user._id;
 
-    if(!wishlist)
+    const wishlist = await WishList.find({ userId }).populate("productId","name brand price image imageURL stock")
+
+    if(!wishlist || wishlist.length === 0)
     {
-        return res.status(404).json({
-            success:false,
+        return res.status(200).json({
+            success:true,
             message:"wishlist is empty",
+            wishlist: []
         })
     }
 

@@ -192,7 +192,7 @@ const WishlistPage = () => {
                       </p>
                     )}
                     <Link
-                      to={`/product/${productId}`}
+                      to={`/products/${productId}`}
                       className="font-bold text-slate-900 hover:text-indigo-600 transition text-sm line-clamp-2 flex items-center justify-between group/link"
                     >
                       <span>{product.name || 'Product Name'}</span>

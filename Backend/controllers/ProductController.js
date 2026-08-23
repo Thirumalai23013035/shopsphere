@@ -82,7 +82,7 @@ const getAllProducts = (asyncHandler(async(req,res)=>{
         page, limit
     } = req.query;
 
-    // Build filter
+
     let filter = {};
 
     const searchKey = search || keyword;
@@ -104,8 +104,8 @@ const getAllProducts = (asyncHandler(async(req,res)=>{
         if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // Build sort
-    let sortOption = { _id: -1 }; // default: newest first
+
+    let sortOption = { _id: -1 };
     const selectedSort = sort || sortBy || (order === 'desc' ? 'price-desc' : '');
     if (selectedSort === 'price-asc' || selectedSort === 'asc') {
         sortOption = { price: 1 };
@@ -119,9 +119,9 @@ const getAllProducts = (asyncHandler(async(req,res)=>{
         sortOption = { _id: -1 };
     }
 
-    // Pagination
+
     const pageNum  = Math.max(1, Number(page)  || 1);
-    const limitNum = Math.min(50, Math.max(1, Number(limit) || 12)); // default 12 per page, max 50
+    const limitNum = Math.min(50, Math.max(1, Number(limit) || 12));
     const skip = (pageNum - 1) * limitNum;
 
     const totalProducts = await Product.countDocuments(filter);

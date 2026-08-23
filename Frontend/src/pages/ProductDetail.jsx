@@ -9,7 +9,6 @@ import {
   Heart,
   ShoppingBag,
   Check,
-  Star,
   AlertCircle,
   Truck,
   ShieldCheck,
@@ -25,19 +24,12 @@ const ProductDetail = () => {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
   const [product, setProduct] = useState(null);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [addingCart, setAddingCart] = useState(false);
-
-  // Review Form State
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewError, setReviewError] = useState('');
 
   const isWishlisted = product ? isInWishlist(product._id) : false;
 
@@ -52,13 +44,6 @@ const ProductDetail = () => {
         const productData = res.data?.product || res.data;
         setProduct(productData);
 
-        // Fetch reviews for this product
-        try {
-          const revRes = await api.get(`/review/${id}`);
-          setReviews(Array.isArray(revRes.data) ? revRes.data : revRes.data?.reviews || []);
-        } catch (revErr) {
-          setReviews([]);
-        }
       } catch (err) {
         console.error('Error fetching product details:', err);
         setError('Product not found or unavailable.');
@@ -96,49 +81,6 @@ const ProductDetail = () => {
       await removeFromWishlist(product._id);
     } else {
       await addToWishlist(product._id);
-    }
-  };
-
-  const handleAddReview = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    if (!comment.trim()) {
-      setReviewError('Please enter a review comment.');
-      return;
-    }
-    try {
-      setSubmittingReview(true);
-      setReviewError('');
-      await api.post('/review/add', {
-        productId: product._id,
-        rating: Number(rating),
-        comment,
-      });
-
-      setComment('');
-      setRating(5);
-
-      // Refresh reviews list
-      const revRes = await api.get(`/review/${id}`);
-      setReviews(Array.isArray(revRes.data) ? revRes.data : revRes.data?.reviews || []);
-    } catch (err) {
-      setReviewError(
-        err.response?.data?.message || err.response?.data?.error || 'Failed to submit review.'
-      );
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
-
-  const handleDeleteReview = async (reviewId) => {
-    try {
-      await api.delete(`/review/${reviewId}`);
-      setReviews(reviews.filter((r) => r._id !== reviewId));
-    } catch (err) {
-      console.error('Error deleting review:', err);
     }
   };
 

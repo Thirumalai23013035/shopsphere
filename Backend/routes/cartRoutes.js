@@ -11,9 +11,9 @@ const {AddtoCart,getCart,increaseQuantity,decreaseQuantity,clearCart,removeFromC
 Router.post("/add",protect,AddtoCart);
 Router.post("/inc/:id",protect,increaseQuantity);
 Router.post("/dec/:id",protect,decreaseQuantity);
-Router.delete("/:id",protect,removeFromCart);
-Router.get("/",protect,getCart);
 Router.get("/total",protect,cartTotal);
+Router.get("/",protect,getCart);
 Router.delete("/",protect,clearCart);
+Router.delete("/:id",protect,removeFromCart);
 
 module.exports = Router;
