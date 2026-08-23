@@ -7,24 +7,21 @@ const asynchandler = require("../utils/asynchandler");
 
 const AddtoCart = (asynchandler(async(req,res)=>{
 
-    const {productId} = req.body;
+    const {productId, quantity} = req.body;
 
     const userId = req.user._id;
 
     console.log("Received ProductId:", productId);
 
-
-
     const product = await Product.findById(productId);
 
     console.log("Product =>", product);
 
-    if(!productId)
+    if(!productId || !product)
     {
         return res.status(404).json({
             success:false,
             message:"Product not found",
-
         })
     }
 
@@ -37,12 +34,13 @@ const AddtoCart = (asynchandler(async(req,res)=>{
         });
     }
 
+    const addQty = Number(quantity) > 0 ? Number(quantity) : 1;
 
     const existingProduct = await Cart.findOne({userId,productId});
 
     if(existingProduct)
     {
-        existingProduct.quantity+=1;
+        existingProduct.quantity += addQty;
 
         await existingProduct.save();
 
@@ -56,8 +54,7 @@ const AddtoCart = (asynchandler(async(req,res)=>{
     const cart = await Cart.create({
         userId:userId,
         productId:productId,
-        quantity:1
-
+        quantity: addQty
     })
 
     return res.status(201).json({

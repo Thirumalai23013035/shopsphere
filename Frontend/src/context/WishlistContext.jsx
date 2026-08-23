@@ -4,13 +4,15 @@ import { useAuth } from './AuthContext';
 
 const WishlistContext = createContext(null);
 
-const LOCAL_STORAGE_KEY = 'ecom_wishlist_items_v1';
+const getWishlistStorageKey = (userId) => (userId ? `ecom_wishlist_items_${userId}` : 'ecom_wishlist_items_guest');
 
 export const WishlistProvider = ({ children }) => {
   const { user } = useAuth();
+  const userId = user?._id || user?.id;
+
   const [wishlist, setWishlist] = useState(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(getWishlistStorageKey(userId));
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       console.error('Failed to parse wishlist items from localStorage:', e);
@@ -19,18 +21,19 @@ export const WishlistProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Sync state to localStorage whenever wishlist updates
+  // Sync state to user-scoped localStorage whenever wishlist or user updates
   useEffect(() => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(wishlist));
+      const key = getWishlistStorageKey(userId);
+      localStorage.setItem(key, JSON.stringify(wishlist));
     } catch (e) {
       console.error('Failed to save wishlist items to localStorage:', e);
     }
-  }, [wishlist]);
+  }, [wishlist, userId]);
 
   // Fetch server wishlist if authenticated
   const fetchWishlist = useCallback(async () => {
-    if (!user) return;
+    if (!userId) return;
     try {
       setLoading(true);
       const res = await api.get('/wishlist');
@@ -46,39 +49,48 @@ export const WishlistProvider = ({ children }) => {
         }
       }
 
-      if (serverItems.length > 0) {
-        const normalized = serverItems.map((item) => {
-          const productObj = item.product && typeof item.product === 'object' ? item.product : (item.productId && typeof item.productId === 'object' ? item.productId : {});
-          const productId = productObj._id || item.productId || item._id;
+      const normalized = serverItems.map((item) => {
+        const productObj = item.product && typeof item.product === 'object' ? item.product : (item.productId && typeof item.productId === 'object' ? item.productId : {});
+        const productId = productObj._id || item.productId || item._id;
 
-          return {
-            _id: item._id || productId,
-            productId: productId,
-            product: {
-              _id: productId,
-              name: productObj.name || item.name || 'Product',
-              price: Number(productObj.price || item.price || 0),
-              image: productObj.image || productObj.imageURL || item.image || '',
-              category: productObj.category || '',
-              brand: productObj.brand || '',
-              rating: productObj.rating || 0,
-              stock: productObj.stock ?? 99
-            }
-          };
-        });
+        return {
+          _id: item._id || productId,
+          productId: productId,
+          product: {
+            _id: productId,
+            name: productObj.name || item.name || 'Product',
+            price: Number(productObj.price || item.price || 0),
+            image: productObj.image || productObj.imageURL || item.image || '',
+            category: productObj.category || '',
+            brand: productObj.brand || '',
+            rating: productObj.rating || 0,
+            stock: productObj.stock ?? 99
+          }
+        };
+      });
 
-        setWishlist(normalized);
-      }
+      setWishlist(normalized);
     } catch (error) {
       console.error('Error fetching wishlist from server:', error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
+  // Switch wishlist items whenever logged-in user changes (or logs out)
   useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+    const key = getWishlistStorageKey(userId);
+    try {
+      const saved = localStorage.getItem(key);
+      setWishlist(saved ? JSON.parse(saved) : []);
+    } catch (e) {
+      setWishlist([]);
+    }
+
+    if (userId) {
+      fetchWishlist();
+    }
+  }, [userId, fetchWishlist]);
 
   /**
    * Check if a product is in wishlist
@@ -203,7 +215,7 @@ export const WishlistProvider = ({ children }) => {
   const clearWishlist = async () => {
     setWishlist([]);
     try {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.removeItem(getWishlistStorageKey(userId));
     } catch (e) {
       console.error(e);
     }

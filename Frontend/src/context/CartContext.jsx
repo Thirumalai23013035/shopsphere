@@ -4,13 +4,15 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
-const LOCAL_STORAGE_KEY = 'ecom_cart_items_v1';
+const getCartStorageKey = (userId) => (userId ? `ecom_cart_items_${userId}` : 'ecom_cart_items_guest');
 
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
+  const userId = user?._id || user?.id;
+
   const [items, setItems] = useState(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(getCartStorageKey(userId));
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       console.error('Failed to parse cart items from localStorage:', e);
@@ -19,18 +21,19 @@ export const CartProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Sync state to localStorage on any item change
+  // Sync state to user-scoped localStorage on item or user change
   useEffect(() => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items));
+      const key = getCartStorageKey(userId);
+      localStorage.setItem(key, JSON.stringify(items));
     } catch (e) {
       console.error('Failed to save cart items to localStorage:', e);
     }
-  }, [items]);
+  }, [items, userId]);
 
   // Fetch server cart if user is authenticated
   const fetchServerCart = useCallback(async () => {
-    if (!user) return;
+    if (!userId) return;
     try {
       setLoading(true);
       const res = await api.get('/cart');
@@ -46,38 +49,48 @@ export const CartProvider = ({ children }) => {
         }
       }
 
-      if (serverItems.length > 0) {
-        const normalized = serverItems.map((item) => {
-          const productObj = item.productId && typeof item.productId === 'object' ? item.productId : item.product || {};
-          const productId = productObj._id || item.productId || item._id;
-          return {
-            _id: item._id || productId,
-            productId: productId,
-            product: {
-              _id: productId,
-              name: productObj.name || item.name || 'Product',
-              price: Number(productObj.price || item.price || 0),
-              image: productObj.image || productObj.imageURL || item.image || '',
-              category: productObj.category || '',
-              brand: productObj.brand || '',
-              stock: productObj.stock ?? 99
-            },
+      const normalized = serverItems.map((item) => {
+        const productObj = item.productId && typeof item.productId === 'object' ? item.productId : item.product || {};
+        const productId = productObj._id || item.productId || item._id;
+        return {
+          _id: item._id || productId,
+          productId: productId,
+          product: {
+            _id: productId,
+            name: productObj.name || item.name || 'Product',
             price: Number(productObj.price || item.price || 0),
-            quantity: Number(item.quantity || 1)
-          };
-        });
-        setItems(normalized);
-      }
+            image: productObj.image || productObj.imageURL || item.image || '',
+            category: productObj.category || '',
+            brand: productObj.brand || '',
+            stock: productObj.stock ?? 99
+          },
+          price: Number(productObj.price || item.price || 0),
+          quantity: Number(item.quantity || 1)
+        };
+      });
+
+      setItems(normalized);
     } catch (error) {
       console.error('Error fetching cart from backend:', error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
+  // Switch cart items whenever logged-in user changes (or logs out)
   useEffect(() => {
-    fetchServerCart();
-  }, [fetchServerCart]);
+    const key = getCartStorageKey(userId);
+    try {
+      const saved = localStorage.getItem(key);
+      setItems(saved ? JSON.parse(saved) : []);
+    } catch (e) {
+      setItems([]);
+    }
+
+    if (userId) {
+      fetchServerCart();
+    }
+  }, [userId, fetchServerCart]);
 
   /**
    * Add product to cart
@@ -254,7 +267,7 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     setItems([]);
     try {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.removeItem(getCartStorageKey(userId));
     } catch (e) {
       console.error(e);
     }
