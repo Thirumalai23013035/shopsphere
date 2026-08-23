@@ -68,27 +68,13 @@ const addReview = (asynchandler(async(req,res)=>{
 }))
 
 const getReviews = (asynchandler(async(req,res)=>{
-
-    const product = await Product.findById(req.params.id);
-
-     if(!product)
-    {
-        return res.status(404).json({
-    
-                success:false,
-                message:"Product Not Found"
-            })
-    }
-
-    const reviews = await Review.find({productId : req.params.id}).populate("userId","name email").sort({createdAt:-1})
+    const reviews = await Review.find({productId : req.params.id}).populate("userId","name email").sort({createdAt:-1});
 
     return res.status(200).json({
         success:true,
-        message:"thanks for review",
+        message:"Reviews fetched successfully",
         count:reviews.length,
         reviews
-        
-
     })
 }))
 
@@ -105,7 +91,7 @@ const updateReview = (asynchandler(async(req,res)=>{
         })
     }
 
-    if(req.user._id.toString()!=review.userId.toString())
+    if(req.user._id.toString()!=review.userId.toString() && req.user.role?.toLowerCase() !== 'admin')
     {
         return res.status(403).json({
             message:"403 forbidden",
@@ -145,8 +131,6 @@ const updateReview = (asynchandler(async(req,res)=>{
         review
     })
 
-
-
 }))
 
 const deleteReview = (asynchandler(async(req,res)=>{
@@ -156,29 +140,41 @@ const deleteReview = (asynchandler(async(req,res)=>{
     if(!review)
     {
         return res.status(404).json({
-            success:true,
+            success:false,
             message:"review is not found",
         })
     }
 
-    if(req.user._id.toString()!=review.userId.toString())
+    if(req.user._id.toString()!=review.userId.toString() && req.user.role?.toLowerCase() !== 'admin')
     {
         return res.status(403).json({
             message:"User access Denied",
             success:false
-            
         })
     }
 
+    const productId = review.productId;
     const reviewDelete = await Review.findByIdAndDelete(req.params.id);
+
+    // Update Product average rating after deletion
+    const reviews = await Review.find({ productId });
+    let totalRating = 0;
+    reviews.forEach((item) => {
+        totalRating += item.rating;
+    });
+    const averageRating = reviews.length > 0 ? Number((totalRating / reviews.length).toFixed(1)) : 0;
+    const product = await Product.findById(productId);
+    if (product) {
+        product.rating = averageRating;
+        product.reviews = reviews.length;
+        await product.save();
+    }
 
     return res.status(200).json({
         success:true,
         message:"Review deleted successfully",
         reviewDelete
     })
-
-
 }))
 
 
