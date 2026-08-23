@@ -4,15 +4,16 @@ import { useAuth } from './AuthContext';
 
 const WishlistContext = createContext(null);
 
-const getWishlistStorageKey = (userId) => (userId ? `ecom_wishlist_items_${userId}` : 'ecom_wishlist_items_guest');
+const getWishlistStorageKey = (userId) => (userId ? `ecom_wishlist_items_${userId}` : null);
 
 export const WishlistProvider = ({ children }) => {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
 
   const [wishlist, setWishlist] = useState(() => {
+    if (!userId) return [];
     try {
-      const saved = localStorage.getItem(getWishlistStorageKey(userId));
+      const saved = localStorage.getItem(`ecom_wishlist_items_${userId}`);
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       console.error('Failed to parse wishlist items from localStorage:', e);
@@ -21,11 +22,22 @@ export const WishlistProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Sync state to user-scoped localStorage whenever wishlist or user updates
+  // Clean up legacy shared wishlist keys from localStorage if any exist
   useEffect(() => {
     try {
-      const key = getWishlistStorageKey(userId);
-      localStorage.setItem(key, JSON.stringify(wishlist));
+      localStorage.removeItem('ecom_wishlist_items_v1');
+      localStorage.removeItem('ecom_wishlist_items_guest');
+    } catch (e) {}
+  }, []);
+
+  // Sync state to user-scoped localStorage
+  useEffect(() => {
+    if (!userId) {
+      setWishlist([]);
+      return;
+    }
+    try {
+      localStorage.setItem(`ecom_wishlist_items_${userId}`, JSON.stringify(wishlist));
     } catch (e) {
       console.error('Failed to save wishlist items to localStorage:', e);
     }
@@ -33,7 +45,10 @@ export const WishlistProvider = ({ children }) => {
 
   // Fetch server wishlist if authenticated
   const fetchWishlist = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setWishlist([]);
+      return;
+    }
     try {
       setLoading(true);
       const res = await api.get('/wishlist');
@@ -79,17 +94,19 @@ export const WishlistProvider = ({ children }) => {
 
   // Switch wishlist items whenever logged-in user changes (or logs out)
   useEffect(() => {
-    const key = getWishlistStorageKey(userId);
+    if (!userId) {
+      setWishlist([]);
+      return;
+    }
+
     try {
-      const saved = localStorage.getItem(key);
+      const saved = localStorage.getItem(`ecom_wishlist_items_${userId}`);
       setWishlist(saved ? JSON.parse(saved) : []);
     } catch (e) {
       setWishlist([]);
     }
 
-    if (userId) {
-      fetchWishlist();
-    }
+    fetchWishlist();
   }, [userId, fetchWishlist]);
 
   /**
@@ -97,14 +114,14 @@ export const WishlistProvider = ({ children }) => {
    */
   const isInWishlist = useCallback(
     (productId) => {
-      if (!productId) return false;
+      if (!productId || !userId) return false;
       const target = String(productId);
       return wishlist.some((item) => {
         const itemProdId = String(item.product?._id || item.productId || item._id);
         return itemProdId === target;
       });
     },
-    [wishlist]
+    [wishlist, userId]
   );
 
   /**
@@ -112,6 +129,7 @@ export const WishlistProvider = ({ children }) => {
    * @param {string|object} productOrId - Product object or Product ID string
    */
   const addToWishlist = async (productOrId) => {
+    if (!userId) return false;
     let targetId = '';
     let productData = null;
 

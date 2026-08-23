@@ -20,6 +20,10 @@ const ProductCard = ({ product }) => {
   const handleCartClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     try {
       setLoadingCart(true);
       await addToCart(product, 1);

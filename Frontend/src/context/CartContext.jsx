@@ -4,15 +4,16 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
-const getCartStorageKey = (userId) => (userId ? `ecom_cart_items_${userId}` : 'ecom_cart_items_guest');
+const getCartStorageKey = (userId) => (userId ? `ecom_cart_items_${userId}` : null);
 
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
 
   const [items, setItems] = useState(() => {
+    if (!userId) return [];
     try {
-      const saved = localStorage.getItem(getCartStorageKey(userId));
+      const saved = localStorage.getItem(`ecom_cart_items_${userId}`);
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       console.error('Failed to parse cart items from localStorage:', e);
@@ -21,11 +22,22 @@ export const CartProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Sync state to user-scoped localStorage on item or user change
+  // Clean up legacy shared cart keys from localStorage if any exist
   useEffect(() => {
     try {
-      const key = getCartStorageKey(userId);
-      localStorage.setItem(key, JSON.stringify(items));
+      localStorage.removeItem('ecom_cart_items_v1');
+      localStorage.removeItem('ecom_cart_items_guest');
+    } catch (e) {}
+  }, []);
+
+  // Sync state to user-scoped localStorage
+  useEffect(() => {
+    if (!userId) {
+      setItems([]);
+      return;
+    }
+    try {
+      localStorage.setItem(`ecom_cart_items_${userId}`, JSON.stringify(items));
     } catch (e) {
       console.error('Failed to save cart items to localStorage:', e);
     }
@@ -33,7 +45,10 @@ export const CartProvider = ({ children }) => {
 
   // Fetch server cart if user is authenticated
   const fetchServerCart = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setItems([]);
+      return;
+    }
     try {
       setLoading(true);
       const res = await api.get('/cart');
@@ -79,17 +94,19 @@ export const CartProvider = ({ children }) => {
 
   // Switch cart items whenever logged-in user changes (or logs out)
   useEffect(() => {
-    const key = getCartStorageKey(userId);
+    if (!userId) {
+      setItems([]);
+      return;
+    }
+
     try {
-      const saved = localStorage.getItem(key);
+      const saved = localStorage.getItem(`ecom_cart_items_${userId}`);
       setItems(saved ? JSON.parse(saved) : []);
     } catch (e) {
       setItems([]);
     }
 
-    if (userId) {
-      fetchServerCart();
-    }
+    fetchServerCart();
   }, [userId, fetchServerCart]);
 
   /**
@@ -99,6 +116,7 @@ export const CartProvider = ({ children }) => {
    * @param {object} productMeta - Optional fallback product metadata
    */
   const addToCart = async (productOrId, quantity = 1, productMeta = null) => {
+    if (!userId) return false;
     let targetId = '';
     let productData = null;
 
