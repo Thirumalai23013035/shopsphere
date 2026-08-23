@@ -104,15 +104,21 @@ const loginAPI = (asynchandler(async(req,res)=>{
 
     const {email,password} = req.body;
 
-    const user = await User.findOne({email});
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Email and password are required"
+        });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
 
     if(!user)
     {
-        return res.status(404).json({
-
+        return res.status(401).json({
             message:"Invalid email or password",
             success:false
-
         })
     }
 
@@ -121,42 +127,33 @@ const loginAPI = (asynchandler(async(req,res)=>{
     if(!checkuser)
     {
         return res.status(401).json({
-            message:"Invalid email or password"
+            message:"Invalid email or password",
+            success:false
         })
     }
-
-
 
     const token = generatetoken(user._id);
 
     res.cookie("token",token,{
-
         httpOnly:true,
         sameSite:"Strict",
         maxAge:7 * 24 * 60 * 60 * 1000,
         secure:false,
-    })
+    });
 
     return res.status(200).json({
-
         success:true,
         message:"login successfully",
         token,
-
         user:{
-
-             _id :user._id,
-              name:user.name,
-              age:user.age,
-              gender:user.gender,
-              role:user.role,
-              email:user.email
-
+            _id :user._id,
+            name:user.name,
+            age:user.age,
+            gender:user.gender,
+            role:user.role,
+            email:user.email
         }
-
     })
-
-
 }))
 
 

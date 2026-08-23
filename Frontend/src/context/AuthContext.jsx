@@ -66,7 +66,26 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     const res = await api.post('/users', { name, email, password });
-    return res.data;
+    const data = res.data;
+
+    const authToken = data.token || data.jwt;
+    if (authToken) {
+      setToken(authToken);
+      localStorage.setItem(TOKEN_KEY, authToken);
+    }
+
+    const userData = {
+      _id: data._id || data.user?._id,
+      name: data.name || data.user?.name,
+      email: data.email || data.user?.email,
+      role: data.role || data.user?.role || 'user',
+      age: data.age || data.user?.age,
+      gender: data.gender || data.user?.gender,
+    };
+
+    setUser(userData);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    return data;
   };
 
   const updateUser = (newUserData) => {
@@ -87,6 +106,18 @@ export const AuthProvider = ({ children }) => {
       setToken(null);
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
+      
+      // Clean up all local cart and wishlist storage keys
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('ecom_cart_items_') || key.startsWith('ecom_wishlist_items_'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      } catch (e) {}
     }
   };
 

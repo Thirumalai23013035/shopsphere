@@ -49,10 +49,10 @@ const Register = () => {
     try {
       setLoading(true);
       await register(name, email, password);
-      setSuccess('Account created successfully! Redirecting to login...');
+      setSuccess('Account created successfully! Logging you in...');
       setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+        navigate('/', { replace: true });
+      }, 800);
     } catch (err) {
       setError(
         err.response?.data?.message || err.response?.data?.error || 'Registration failed. Email might already be in use.'

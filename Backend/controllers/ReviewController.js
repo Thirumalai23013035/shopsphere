@@ -156,7 +156,7 @@ const deleteReview = (asynchandler(async(req,res)=>{
     const productId = review.productId;
     const reviewDelete = await Review.findByIdAndDelete(req.params.id);
 
-    // Update Product average rating after deletion
+
     const reviews = await Review.find({ productId });
     let totalRating = 0;
     reviews.forEach((item) => {
