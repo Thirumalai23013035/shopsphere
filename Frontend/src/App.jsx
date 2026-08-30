@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -24,93 +24,89 @@ import UserProfile from './pages/UserProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminProductManagement from './pages/AdminProductManagement';
 import AdminOrderManagement from './pages/AdminOrderManagement';
-import ScrollToTop from './components/ScrollToTop';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <MainLayout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
+      { path: 'products', element: <ProductListing /> },
+      { path: 'products/:id', element: <ProductDetail /> },
+      { path: 'cart', element: <CartPage /> },
+      { path: 'wishlist', element: <WishlistPage /> },
+      {
+        path: 'checkout',
+        element: (
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'orders',
+        element: (
+          <ProtectedRoute>
+            <MyOrders />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'orders/:id',
+        element: (
+          <ProtectedRoute>
+            <SingleOrderPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <ProtectedRoute>
+            <UserProfile />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/dashboard',
+        element: (
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: 'admin/products',
+        element: (
+          <AdminRoute>
+            <AdminProductManagement />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: 'admin/orders',
+        element: (
+          <AdminRoute>
+            <AdminOrderManagement />
+          </AdminRoute>
+        ),
+      },
+      { path: '*', element: <Home /> },
+    ],
+  },
+]);
 
 function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <Routes>
-              <Route path="/" element={<MainLayout />}>
-                <Route index element={<Home />} />
-                <Route path="login" element={<Login />} />
-                <Route path="register" element={<Register />} />
-                <Route path="products" element={<ProductListing />} />
-                <Route path="products/:id" element={<ProductDetail />} />
-                <Route path="cart" element={<CartPage />} />
-                <Route path="wishlist" element={<WishlistPage />} />
-
-                {/* Protected Routes */}
-                <Route
-                  path="checkout"
-                  element={
-                    <ProtectedRoute>
-                      <CheckoutPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="orders"
-                  element={
-                    <ProtectedRoute>
-                      <MyOrders />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="orders/:id"
-                  element={
-                    <ProtectedRoute>
-                      <SingleOrderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="profile"
-                  element={
-                    <ProtectedRoute>
-                      <UserProfile />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Admin Routes */}
-                <Route
-                  path="admin/dashboard"
-                  element={
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  }
-                />
-                <Route
-                  path="admin/products"
-                  element={
-                    <AdminRoute>
-                      <AdminProductManagement />
-                    </AdminRoute>
-                  }
-                />
-                <Route
-                  path="admin/orders"
-                  element={
-                    <AdminRoute>
-                      <AdminOrderManagement />
-                    </AdminRoute>
-                  }
-                />
-
-                {/* Fallback 404 */}
-                <Route path="*" element={<Home />} />
-              </Route>
-            </Routes>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <CartProvider>
+        <WishlistProvider>
+          <RouterProvider router={router} />
+        </WishlistProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 
