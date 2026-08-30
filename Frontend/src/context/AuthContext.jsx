@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [token]);
+  }, []);
 
   const login = async (email, password) => {
     const res = await api.post('/users/login', { email, password });
