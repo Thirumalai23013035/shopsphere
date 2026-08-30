@@ -10,7 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { user, login } = useAuth();
+  const { user, token, loading: authLoading, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,10 +18,10 @@ const Login = () => {
 
   // Redirect if user is already logged in
   React.useEffect(() => {
-    if (user) {
+    if (!authLoading && user && token) {
       navigate(from, { replace: true });
     }
-  }, [user, navigate, from]);
+  }, [user, token, authLoading, navigate, from]);
 
   const validateEmail = (val) => {
     return /\S+@\S+\.\S+/.test(val);

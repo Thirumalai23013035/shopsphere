@@ -24,13 +24,15 @@ import UserProfile from './pages/UserProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminProductManagement from './pages/AdminProductManagement';
 import AdminOrderManagement from './pages/AdminOrderManagement';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <Router>
+    <Router>
+      <ScrollToTop />
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
             <Routes>
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<Home />} />
@@ -105,10 +107,10 @@ function App() {
                 <Route path="*" element={<Home />} />
               </Route>
             </Routes>
-          </Router>
-        </WishlistProvider>
-      </CartProvider>
-    </AuthProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

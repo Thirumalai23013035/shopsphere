@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { TOKEN_KEY } from '../utils/constants';
 
+const rawBaseURL = import.meta.env.VITE_API_URL || '';
+const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

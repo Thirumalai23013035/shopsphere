@@ -5,38 +5,58 @@ import { TOKEN_KEY, USER_KEY } from '../utils/constants';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem(USER_KEY);
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-
   const [token, setToken] = useState(() => {
     return localStorage.getItem(TOKEN_KEY) || null;
+  });
+
+  const [user, setUser] = useState(() => {
+    const savedToken = localStorage.getItem(TOKEN_KEY);
+    const savedUser = localStorage.getItem(USER_KEY);
+    if (!savedToken || !savedUser) return null;
+    try {
+      return JSON.parse(savedUser);
+    } catch {
+      return null;
+    }
   });
 
   const [loading, setLoading] = useState(true);
 
   // Check auth profile on startup if token exists
   useEffect(() => {
+    let isMounted = true;
+
     const verifyUser = async () => {
       if (token) {
         try {
           const res = await api.get('/users/profile');
           const userData = res.data?.user || res.data;
-          setUser(userData);
-          localStorage.setItem(USER_KEY, JSON.stringify(userData));
+          if (isMounted) {
+            setUser(userData);
+            localStorage.setItem(USER_KEY, JSON.stringify(userData));
+          }
         } catch (error) {
           console.warn('Auth token invalid or expired');
-          logout();
+          if (isMounted) {
+            logout();
+          }
         }
       } else {
-        setUser(null);
-        localStorage.removeItem(USER_KEY);
+        if (isMounted) {
+          setUser(null);
+          localStorage.removeItem(USER_KEY);
+        }
       }
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
 
     verifyUser();
+
+    return () => {
+      isMounted = false;
+    };
   }, [token]);
 
   const login = async (email, password) => {

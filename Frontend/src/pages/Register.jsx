@@ -14,15 +14,15 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { user, register } = useAuth();
+  const { user, token, loading: authLoading, register } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if user is already logged in
   React.useEffect(() => {
-    if (user) {
+    if (!authLoading && user && token) {
       navigate('/', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, token, authLoading, navigate]);
 
   const validateEmail = (val) => {
     return /\S+@\S+\.\S+/.test(val);
