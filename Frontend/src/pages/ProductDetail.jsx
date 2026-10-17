@@ -56,10 +56,6 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleAddToCart = async () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     try {
       setAddingCart(true);
       await addToCart(product, quantity);
@@ -122,7 +118,9 @@ const ProductDetail = () => {
         <div className="relative aspect-square bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
           <img
             src={imageUrl}
-            alt={product.name}
+            alt={product.name || 'Product'}
+            width="600"
+            height="600"
             className="w-full h-full object-cover"
             onError={(e) => {
               e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80';
@@ -176,14 +174,18 @@ const ProductDetail = () => {
               <span className="text-xs font-bold text-slate-700 uppercase">Quantity</span>
               <div className="flex items-center border border-slate-200 rounded-xl bg-slate-50 overflow-hidden">
                 <button
+                  type="button"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  aria-label="Decrease quantity"
                   className="px-3 py-1.5 text-slate-600 hover:bg-slate-200 font-bold transition"
                 >
                   -
                 </button>
                 <span className="px-4 py-1.5 text-xs font-bold text-slate-800">{quantity}</span>
                 <button
+                  type="button"
                   onClick={() => setQuantity(Math.min(product.stock || 99, quantity + 1))}
+                  aria-label="Increase quantity"
                   className="px-3 py-1.5 text-slate-600 hover:bg-slate-200 font-bold transition"
                 >
                   +
@@ -193,8 +195,10 @@ const ProductDetail = () => {
 
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={handleAddToCart}
                 disabled={addingCart || product.stock === 0}
+                aria-label="Add to Cart"
                 className={`flex-1 py-3 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition ${
                   product.stock === 0
                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -217,7 +221,9 @@ const ProductDetail = () => {
               </button>
 
               <button
+                type="button"
                 onClick={handleWishlistToggle}
+                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                 className={`p-3 rounded-xl border transition ${
                   isWishlisted
                     ? 'bg-rose-50 text-rose-600 border-rose-200'

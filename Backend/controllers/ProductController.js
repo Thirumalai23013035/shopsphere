@@ -1,12 +1,19 @@
+const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const User = require("../models/User");
-const asynchandler = require("../utils/asynchandler");
+const asyncHandler = require("../utils/asynchandler");
+const asynchandler = asyncHandler;
 const cloudinary = require("../config/clodinary");
 const fs = require("fs");
 
+const sanitizeString = (val, maxLen = 200) => {
+    if (typeof val !== 'string') return '';
+    return val.replace(/\0/g, '').slice(0, maxLen).trim();
+};
 
-const asyncHandler = require("../utils/asynchandler");
-const { logout } = require("./UserController");
+const escapeRegex = (str) => {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 const AddProduct = (asyncHandler(async(req,res)=>{
     const {name, description, price, category, stock, brand, rating, reviews, image, imageUrl, imageURL} = req.body;
@@ -82,28 +89,33 @@ const getAllProducts = (asyncHandler(async(req,res)=>{
         page, limit
     } = req.query;
 
-
     let filter = {};
 
-    const searchKey = search || keyword;
-    if (searchKey) {
+    const rawSearch = sanitizeString(search || keyword, 500);
+    if (rawSearch) {
+        const escaped = escapeRegex(rawSearch);
         filter.$or = [
-            { name: { $regex: searchKey, $options: 'i' } },
-            { brand: { $regex: searchKey, $options: 'i' } },
-            { category: { $regex: searchKey, $options: 'i' } },
-            { description: { $regex: searchKey, $options: 'i' } }
+            { name: { $regex: escaped, $options: 'i' } },
+            { brand: { $regex: escaped, $options: 'i' } },
+            { category: { $regex: escaped, $options: 'i' } },
+            { description: { $regex: escaped, $options: 'i' } }
         ];
     }
 
-    if (category) filter.category = { $regex: category, $options: 'i' };
-    if (brand) filter.brand = { $regex: brand, $options: 'i' };
+    const safeCat = sanitizeString(category);
+    if (safeCat) filter.category = { $regex: escapeRegex(safeCat), $options: 'i' };
 
-    if (minPrice || maxPrice) {
+    const safeBrand = sanitizeString(brand);
+    if (safeBrand) filter.brand = { $regex: escapeRegex(safeBrand), $options: 'i' };
+
+    const parsedMin = Number(minPrice);
+    const parsedMax = Number(maxPrice);
+    if (!isNaN(parsedMin) || !isNaN(parsedMax)) {
         filter.price = {};
-        if (minPrice) filter.price.$gte = Number(minPrice);
-        if (maxPrice) filter.price.$lte = Number(maxPrice);
+        if (!isNaN(parsedMin) && parsedMin >= 0) filter.price.$gte = parsedMin;
+        if (!isNaN(parsedMax) && parsedMax >= 0) filter.price.$lte = parsedMax;
+        if (Object.keys(filter.price).length === 0) delete filter.price;
     }
-
 
     let sortOption = { _id: -1 };
     const selectedSort = sort || sortBy || (order === 'desc' ? 'price-desc' : '');
@@ -119,9 +131,8 @@ const getAllProducts = (asyncHandler(async(req,res)=>{
         sortOption = { _id: -1 };
     }
 
-
-    const pageNum  = Math.max(1, Number(page)  || 1);
-    const limitNum = Math.min(50, Math.max(1, Number(limit) || 12));
+    const pageNum  = Math.max(1, parseInt(page, 10)  || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
     const skip = (pageNum - 1) * limitNum;
 
     const totalProducts = await Product.countDocuments(filter);
@@ -160,18 +171,23 @@ const addManyProducts = (asyncHandler(async(req,res)=>{
 
 
 const getProduct = (asyncHandler(async(req,res)=>{
+    const { id } = req.params;
+    if (!id || !mongoose.isValidObjectId(id)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid product ID format"
+        });
+    }
 
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(id);
 
     if(!product)
     {
         return res.status(404).json({
-
             success:false,
             message:"Product Not Found"
-        })
+        });
     }
-
 
     return res.status(200).json({
         message:"Product successfully fetched",
@@ -192,20 +208,27 @@ const getProduct = (asyncHandler(async(req,res)=>{
             rating:product.rating,
             reviews:product.reviews
         }
-    })
-}))
+    });
+}));
 
 
 const updateProduct = (asyncHandler(async(req,res)=>{
+    const { id } = req.params;
+    if (!id || !mongoose.isValidObjectId(id)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid product ID format"
+        });
+    }
 
-    const product = await Product.findById(req.params.id)
+    const product = await Product.findById(id);
     
     if(!product)
     {
         return res.status(404).json({
             success:false,
             message:"Product Not Found"
-        })
+        });
     }
     
     if(req.file)
@@ -255,10 +278,15 @@ const updateProduct = (asyncHandler(async(req,res)=>{
 
 
 const deleteProduct = (asyncHandler(async(req,res)=>{
+    const { id } = req.params;
+    if (!id || !mongoose.isValidObjectId(id)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid product ID format"
+        });
+    }
 
-    
-
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(id);
 
     if(!product)
         {
@@ -266,7 +294,7 @@ const deleteProduct = (asyncHandler(async(req,res)=>{
                 
                 success:false,
                 message:"Product Not Found"
-            })
+            });
         }
         
     // Only attempt Cloudinary deletion if the product has an uploaded image
@@ -278,7 +306,7 @@ const deleteProduct = (asyncHandler(async(req,res)=>{
         }
     }
 
-    await Product.findByIdAndDelete(req.params.id);
+    await Product.findByIdAndDelete(id);
 
     res.status(200).json({
 
@@ -513,6 +541,5 @@ module.exports = {
     uploadProductImage,
     sortProducts,
     Pagination,
-    getCategories,
-    logout
+    getCategories
 }

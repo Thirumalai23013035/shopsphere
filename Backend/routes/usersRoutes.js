@@ -12,9 +12,9 @@ console.log(registerUser);
 router.post("/",registerUser);
 router.post("/login",loginAPI);
 router.post("/logout",logout)
-router.get("/",getUsers);
+router.get("/",protect,admin,getUsers);
 router.get("/profile",protect,getProfile);
 router.delete("/:id",protect,admin,deleteUser);
-router.get("/:id",getUserById);
-router.put("/:id",updateUser);
+router.get("/:id",protect,getUserById);
+router.put("/:id",protect,updateUser);
 module.exports = router;

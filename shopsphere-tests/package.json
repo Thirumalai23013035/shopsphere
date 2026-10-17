@@ -1,0 +1,22 @@
+{
+  "name": "shopsphere-tests",
+  "version": "1.0.0",
+  "description": "Automated test suite for ShopSphere (functional, negative, responsive, accessibility, performance, security, API)",
+  "scripts": {
+    "setup": "npm install && npx playwright install --with-deps chromium",
+    "setup:all-browsers": "npm install && npx playwright install --with-deps",
+    "discover": "node scripts/discover.js",
+    "test": "playwright test --project=chromium",
+    "test:all-browsers": "playwright test",
+    "test:headed": "playwright test --project=chromium --headed",
+    "test:smoke": "playwright test tests/01-smoke.spec.js --project=chromium",
+    "test:security": "playwright test tests/07-security.spec.js --project=chromium",
+    "html-report": "playwright show-report reports/html",
+    "lighthouse": "npx lighthouse https://shopsphere-weld-nu.vercel.app --output=html --output=json --output-path=./reports/lighthouse --chrome-flags=\"--headless=new\" --quiet",
+    "load": "k6 run load/k6-load.js"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.48.0"
+  }
+}

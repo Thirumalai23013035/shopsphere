@@ -130,6 +130,7 @@ const FilterSidebar = ({
               Cat: {category}
               <button
                 type="button"
+                aria-label="Remove category filter"
                 onClick={() => onFilterChange({ ...filters, category: '' })}
                 className="hover:text-indigo-900"
               >
@@ -142,6 +143,7 @@ const FilterSidebar = ({
               Brand: {brand}
               <button
                 type="button"
+                aria-label="Remove brand filter"
                 onClick={() => onFilterChange({ ...filters, brand: '' })}
                 className="hover:text-indigo-900"
               >
@@ -154,6 +156,7 @@ const FilterSidebar = ({
               Price: ${minPrice || '0'} - ${maxPrice || '∞'}
               <button
                 type="button"
+                aria-label="Remove price filter"
                 onClick={() => {
                   setLocalMin('');
                   setLocalMax('');
@@ -170,6 +173,7 @@ const FilterSidebar = ({
               "{search}"
               <button
                 type="button"
+                aria-label="Remove search filter"
                 onClick={() => onFilterChange({ ...filters, search: '' })}
                 className="hover:text-amber-900"
               >
@@ -182,11 +186,13 @@ const FilterSidebar = ({
 
       {/* Keywords Search */}
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+        <label htmlFor="filter-keyword-search" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
           Keyword Search
         </label>
         <div className="relative">
           <input
+            id="filter-keyword-search"
+            aria-label="Search within results"
             type="text"
             placeholder="Search within results..."
             value={search}
@@ -197,6 +203,7 @@ const FilterSidebar = ({
           {search && (
             <button
               type="button"
+              aria-label="Clear keyword search"
               onClick={() => onFilterChange({ ...filters, search: '' })}
               className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
             >
@@ -233,7 +240,7 @@ const FilterSidebar = ({
                     onClick={() => handleSelectPresetPrice(preset)}
                     className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition border ${
                       active
-                        ? 'bg-emerald-600 text-white border-emerald-600 font-semibold shadow-2xs'
+                        ? 'bg-emerald-700 text-white border-emerald-700 font-semibold shadow-2xs'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
                     }`}
                   >
@@ -247,10 +254,12 @@ const FilterSidebar = ({
             <form onSubmit={handlePriceApply} className="space-y-2 pt-1">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <span className="block text-[10px] text-slate-400 mb-1 font-medium">Min Price ($)</span>
+                  <label htmlFor="filter-min-price" className="block text-[11px] text-slate-600 mb-1 font-medium">Min Price ($)</label>
                   <div className="relative">
                     <span className="absolute left-2.5 top-2 text-xs text-slate-400">$</span>
                     <input
+                      id="filter-min-price"
+                      aria-label="Minimum price"
                       type="number"
                       min="0"
                       placeholder="0"
@@ -261,10 +270,12 @@ const FilterSidebar = ({
                   </div>
                 </div>
                 <div>
-                  <span className="block text-[10px] text-slate-400 mb-1 font-medium">Max Price ($)</span>
+                  <label htmlFor="filter-max-price" className="block text-[11px] text-slate-600 mb-1 font-medium">Max Price ($)</label>
                   <div className="relative">
                     <span className="absolute left-2.5 top-2 text-xs text-slate-400">$</span>
                     <input
+                      id="filter-max-price"
+                      aria-label="Maximum price"
                       type="number"
                       min="0"
                       placeholder="Any"
@@ -382,6 +393,8 @@ const FilterSidebar = ({
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <h3 className="text-base font-bold text-slate-900">Filter Products</h3>
               <button
+                type="button"
+                aria-label="Close filters"
                 onClick={onClose}
                 className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full bg-slate-100"
               >

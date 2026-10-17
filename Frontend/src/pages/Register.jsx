@@ -68,14 +68,21 @@ const Register = () => {
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 error-msg"
+        >
           <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="mb-6 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2">
+        <div
+          role="status"
+          className="mb-6 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2"
+        >
           <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
           <span>{success}</span>
         </div>
@@ -93,6 +100,7 @@ const Register = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
+              aria-label="Full Name"
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-indigo-600 focus:outline-none transition"
             />
             <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -110,6 +118,7 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              aria-label="Email Address"
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-indigo-600 focus:outline-none transition"
             />
             <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -127,12 +136,14 @@ const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              aria-label="Password"
               className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-indigo-600 focus:outline-none transition"
             />
             <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
               className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition"
               title={showPassword ? 'Hide password' : 'Show password'}
             >
@@ -152,12 +163,14 @@ const Register = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
+              aria-label="Confirm Password"
               className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-indigo-600 focus:outline-none transition"
             />
             <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
               className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition"
               title={showConfirmPassword ? 'Hide password' : 'Show password'}
             >

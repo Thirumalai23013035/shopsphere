@@ -8,16 +8,6 @@ export default defineConfig({
     emptyOutDir: true
   },
   server: {
-    port: 3001,
-    proxy: {
-      '/users': 'http://localhost:3000',
-      '/products': 'http://localhost:3000',
-      '/cart': 'http://localhost:3000',
-      '/order': 'http://localhost:3000',
-      '/wishlist': 'http://localhost:3000',
-      '/admin': 'http://localhost:3000',
-      '/review': 'http://localhost:3000',
-      '/uploads': 'http://localhost:3000'
-    }
+    port: 5173
   }
 });

@@ -94,7 +94,11 @@ const WishlistPage = () => {
     <div className="space-y-8 pb-16 max-w-7xl mx-auto">
       {/* Toast Notification */}
       {actionMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce border border-slate-700">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce border border-slate-700"
+        >
           <Check className="w-4 h-4 text-emerald-400" />
           <span className="text-xs font-semibold">{actionMessage}</span>
         </div>
@@ -108,7 +112,7 @@ const WishlistPage = () => {
             Your Personal Collection
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Saved Wishlist</h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             {wishlist.length} {wishlist.length === 1 ? 'item' : 'items'} saved for later consideration
           </p>
         </div>
@@ -126,7 +130,7 @@ const WishlistPage = () => {
             <button
               type="button"
               onClick={clearWishlist}
-              className="px-4 py-2.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 transition flex items-center gap-1.5"
+              className="px-4 py-2.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition flex items-center gap-1.5"
             >
               <Trash2 className="w-4 h-4" />
               Clear Wishlist
@@ -155,6 +159,9 @@ const WishlistPage = () => {
                     <img
                       src={product.image}
                       alt={product.name || 'Product'}
+                      width="300"
+                      height="225"
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                       referrerPolicy="no-referrer"
                     />
@@ -169,7 +176,8 @@ const WishlistPage = () => {
                     type="button"
                     onClick={() => handleRemove(item)}
                     title="Remove from wishlist"
-                    className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-xs text-slate-400 hover:text-rose-600 hover:bg-white rounded-full shadow-xs transition"
+                    aria-label={`Remove ${product.name || 'item'} from wishlist`}
+                    className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-xs text-slate-600 hover:text-rose-600 hover:bg-white rounded-full shadow-xs transition"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -187,7 +195,7 @@ const WishlistPage = () => {
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div>
                     {product.brand && (
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
                         {product.brand}
                       </p>
                     )}

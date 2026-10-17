@@ -47,9 +47,13 @@ const Navbar = () => {
             </Link>
 
             {/* Wishlist */}
-            <Link to="/wishlist" className="relative p-2 text-slate-700 hover:text-indigo-600 transition">
+            <Link
+              to="/wishlist"
+              aria-label="Wishlist"
+              className="relative p-2 text-slate-700 hover:text-indigo-600 transition"
+            >
               <Heart className="w-5 h-5" />
-              {user && wishlist.length > 0 && (
+              {wishlist.length > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
                   {wishlist.length}
                 </span>
@@ -57,9 +61,13 @@ const Navbar = () => {
             </Link>
 
             {/* Cart */}
-            <Link to="/cart" className="relative p-2 text-slate-700 hover:text-indigo-600 transition">
+            <Link
+              to="/cart"
+              aria-label="Shopping Cart"
+              className="relative p-2 text-slate-700 hover:text-indigo-600 transition"
+            >
               <ShoppingBag className="w-5 h-5" />
-              {user && cartItemCount > 0 && (
+              {cartItemCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">
                   {cartItemCount}
                 </span>
@@ -145,8 +153,10 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-600 hover:text-slate-900"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            className="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -175,7 +185,7 @@ const Navbar = () => {
           >
             <span>Wishlist</span>
             <span className="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">
-              {user ? wishlist.length : 0}
+              {wishlist.length}
             </span>
           </Link>
           <Link
@@ -185,7 +195,7 @@ const Navbar = () => {
           >
             <span>Cart</span>
             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">
-              {user ? cartItemCount : 0}
+              {cartItemCount}
             </span>
           </Link>
 

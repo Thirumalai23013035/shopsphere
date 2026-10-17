@@ -4,16 +4,16 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
-const getCartStorageKey = (userId) => (userId ? `ecom_cart_items_${userId}` : null);
+const getCartStorageKey = (userId) => (userId ? `ecom_cart_items_${userId}` : 'ecom_cart_items_guest');
 
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
 
   const [items, setItems] = useState(() => {
-    if (!userId) return [];
     try {
-      const saved = localStorage.getItem(`ecom_cart_items_${userId}`);
+      const key = getCartStorageKey(userId);
+      const saved = localStorage.getItem(key);
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       console.error('Failed to parse cart items from localStorage:', e);
@@ -22,22 +22,11 @@ export const CartProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Clean up legacy shared cart keys from localStorage if any exist
+  // Sync state to user-scoped or guest localStorage
   useEffect(() => {
     try {
-      localStorage.removeItem('ecom_cart_items_v1');
-      localStorage.removeItem('ecom_cart_items_guest');
-    } catch (e) {}
-  }, []);
-
-  // Sync state to user-scoped localStorage
-  useEffect(() => {
-    if (!userId) {
-      setItems([]);
-      return;
-    }
-    try {
-      localStorage.setItem(`ecom_cart_items_${userId}`, JSON.stringify(items));
+      const key = getCartStorageKey(userId);
+      localStorage.setItem(key, JSON.stringify(items));
     } catch (e) {
       console.error('Failed to save cart items to localStorage:', e);
     }
@@ -95,19 +84,17 @@ export const CartProvider = ({ children }) => {
 
   // Switch cart items whenever logged-in user changes (or logs out)
   useEffect(() => {
-    if (!userId) {
-      setItems([]);
-      return;
-    }
-
     try {
-      const saved = localStorage.getItem(`ecom_cart_items_${userId}`);
+      const key = getCartStorageKey(userId);
+      const saved = localStorage.getItem(key);
       setItems(saved ? JSON.parse(saved) : []);
     } catch (e) {
       setItems([]);
     }
 
-    fetchServerCart();
+    if (userId) {
+      fetchServerCart();
+    }
   }, [userId, fetchServerCart]);
 
   /**
@@ -117,7 +104,6 @@ export const CartProvider = ({ children }) => {
    * @param {object} productMeta - Optional fallback product metadata
    */
   const addToCart = async (productOrId, quantity = 1, productMeta = null) => {
-    if (!userId) return false;
     let targetId = '';
     let productData = null;
 

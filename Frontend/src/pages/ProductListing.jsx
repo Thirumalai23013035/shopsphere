@@ -151,7 +151,7 @@ const ProductListing = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Product Catalog</h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1 font-medium">
             {loading
               ? 'Loading...'
               : `Showing ${products.length} of ${totalProducts} product${totalProducts === 1 ? '' : 's'} — Page ${page} of ${totalPages}`}
@@ -161,6 +161,7 @@ const ProductListing = () => {
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setMobileFilterOpen(true)}
+            aria-label="Open product filters"
             className="md:hidden flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition"
           >
             <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
@@ -173,7 +174,7 @@ const ProductListing = () => {
 
       {/* Quick Sort Pills */}
       <div className="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-200/60 flex items-center justify-between gap-2 overflow-x-auto">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-2 shrink-0 hidden sm:inline-block">
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider pl-2 shrink-0 hidden sm:inline-block">
           Quick Sort:
         </span>
         <SortSelector currentSort={sort} onSortChange={handleSortChange} variant="pills" label="" />
@@ -216,7 +217,7 @@ const ProductListing = () => {
             <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8">
               <p className="text-3xl mb-2">🔍</p>
               <h3 className="text-base font-bold text-slate-800">No products found</h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1 font-medium">
                 Try adjusting your search or clear applied filters.
               </p>
               <button
@@ -234,7 +235,7 @@ const ProductListing = () => {
               <button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page <= 1}
-                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition"
               >
                 <ChevronLeft className="w-3.5 h-3.5" /> Prev
               </button>
@@ -244,7 +245,7 @@ const ProductListing = () => {
                   <button onClick={() => handlePageChange(1)} className="w-8 h-8 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition">
                     1
                   </button>
-                  {page > 4 && <span className="text-slate-400 text-xs px-1">…</span>}
+                  {page > 4 && <span className="text-slate-600 text-xs px-1">…</span>}
                 </>
               )}
 
@@ -264,7 +265,7 @@ const ProductListing = () => {
 
               {page < totalPages - 2 && (
                 <>
-                  {page < totalPages - 3 && <span className="text-slate-400 text-xs px-1">…</span>}
+                  {page < totalPages - 3 && <span className="text-slate-600 text-xs px-1">…</span>}
                   <button onClick={() => handlePageChange(totalPages)} className="w-8 h-8 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition">
                     {totalPages}
                   </button>
@@ -274,7 +275,7 @@ const ProductListing = () => {
               <button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page >= totalPages}
-                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition"
               >
                 Next <ChevronRight className="w-3.5 h-3.5" />
               </button>

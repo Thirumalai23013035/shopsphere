@@ -32,10 +32,7 @@ export const WishlistProvider = ({ children }) => {
 
   // Sync state to user-scoped localStorage
   useEffect(() => {
-    if (!userId) {
-      setWishlist([]);
-      return;
-    }
+    if (!userId) return;
     try {
       localStorage.setItem(`ecom_wishlist_items_${userId}`, JSON.stringify(wishlist));
     } catch (e) {

@@ -19,17 +19,14 @@ const CategoryFilter = ({
   showAllOption = true,
   allLabel = 'All Categories'
 }) => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchCategories = async () => {
-      setLoading(true);
-      setError(null);
-
       try {
         // Try fetching dedicated categories route
         let fetchedList = [];
@@ -75,10 +72,6 @@ const CategoryFilter = ({
           setError('Failed to load categories');
           setCategories(DEFAULT_CATEGORIES);
         }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
       }
     };
 
@@ -94,15 +87,6 @@ const CategoryFilter = ({
       onSelectCategory(cat);
     }
   };
-
-  if (loading) {
-    return (
-      <div className={`flex items-center gap-2 text-slate-400 text-xs py-2 ${className}`}>
-        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
-        <span>Loading categories...</span>
-      </div>
-    );
-  }
 
   // Variant 1: Horizontal Pills Bar
   if (variant === 'pills') {

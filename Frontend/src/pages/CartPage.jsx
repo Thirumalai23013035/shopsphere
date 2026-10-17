@@ -73,12 +73,16 @@ const CartPage = () => {
             return (
               <div
                 key={itemId}
-                className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4"
+                data-testid="cart-item"
+                className="cart-item bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                   <img
                     src={imageUrl}
-                    alt={product.name}
+                    alt={product.name || 'Product in cart'}
+                    width="80"
+                    height="80"
+                    loading="lazy"
                     className="w-20 h-20 rounded-xl object-cover bg-slate-50 border border-slate-100 shrink-0"
                     onError={(e) => {
                       e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&auto=format&fit=crop&q=80';
@@ -91,7 +95,7 @@ const CartPage = () => {
                     >
                       {product.name || 'Product'}
                     </Link>
-                    <span className="text-xs font-semibold text-slate-500 block mt-1">
+                    <span className="text-xs font-semibold text-slate-600 block mt-1">
                       ${price.toFixed(2)} each
                     </span>
                   </div>
@@ -101,14 +105,18 @@ const CartPage = () => {
                   {/* Quantity controls */}
                   <div className="flex items-center border border-slate-200 rounded-xl bg-slate-50">
                     <button
+                      type="button"
                       onClick={() => decreaseQuantity(itemId)}
+                      aria-label="Decrease quantity"
                       className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-l-xl transition"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
                     <span className="px-3 text-xs font-bold text-slate-800">{qty}</span>
                     <button
+                      type="button"
                       onClick={() => increaseQuantity(itemId)}
+                      aria-label="Increase quantity"
                       className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-r-xl transition"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -122,8 +130,10 @@ const CartPage = () => {
 
                   {/* Remove Item */}
                   <button
+                    type="button"
                     onClick={() => removeFromCart(itemId)}
-                    className="p-2 text-slate-400 hover:text-rose-600 transition"
+                    aria-label="Remove item from cart"
+                    className="p-2 text-slate-500 hover:text-rose-600 transition"
                     title="Remove item"
                   >
                     <Trash2 className="w-4 h-4" />

@@ -1,0 +1,31 @@
+// Tuned from discovery.json of https://shopsphere-weld-nu.vercel.app
+module.exports = {
+  backend: process.env.API_URL || 'https://shopsphere-backend-lta8.onrender.com',
+  routes: {
+    products: '/products',
+    wishlist: '/wishlist',
+    orders: '/orders',
+    login: process.env.LOGIN_PATH || '/login',
+    register: process.env.REGISTER_PATH || '/register',
+    cart: process.env.CART_PATH || '/cart',
+    checkout: process.env.CHECKOUT_PATH || '/checkout',
+  },
+  searchInput: 'input[placeholder*="Search products" i]',
+  // each product has 2 links to /products/<id> (image + name)
+  productLink: 'a[href^="/products/"]',
+  productCard: 'a[href^="/products/"]',
+  addToCart: 'button:text-is("Add"), button:has-text("Add to Cart")',
+  wishlistBtn: 'button.absolute.top-3.right-3',
+  categoryBtn: (name) => `button:has-text("${name}"), a:has-text("${name}")`,
+  cartLink: 'a[href="/cart"]',
+  wishlistLink: 'a[href="/wishlist"]',
+  cartItem: '[class*="cart" i] img, [data-testid*="cart-item" i], [class*="cart-item" i]',
+  removeFromCart: 'button:has-text("Remove"), button[aria-label*="remove" i], button:has-text("Delete")',
+  qtyPlus: 'button:text-is("+"), button[aria-label*="increase" i]',
+  checkoutBtn: 'button:has-text("Checkout"), a:has-text("Checkout"), button:has-text("Proceed")',
+  emailInput: 'input[type="email"], input[name*="email" i], input[placeholder*="email" i]',
+  passwordInput: 'input[type="password"]',
+  nameInput: 'input[name*="name" i], input[placeholder*="name" i]',
+  submitBtn: 'button[type="submit"], button:has-text("Log In"), button:has-text("Login"), button:has-text("Sign in"), button:has-text("Register"), button:has-text("Sign up"), button:has-text("Create")',
+  errorMsg: '[role="alert"], [class*="error" i], [class*="toast" i], [class*="invalid" i], [class*="red-" i], .Toastify',
+};

@@ -14,16 +14,12 @@ const ProductCard = ({ product }) => {
   const [added, setAdded] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
 
-  const productId = product._id;
+  const productId = product?._id || product?.id;
   const isWishlisted = isInWishlist(productId);
 
   const handleCartClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     try {
       setLoadingCart(true);
       await addToCart(product, 1);
@@ -54,7 +50,7 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  const rawImage = product.imageURL || product.image;
+  const rawImage = product?.imageURL || product?.image;
   const imageUrl = rawImage
     ? rawImage.startsWith('http')
       ? rawImage
@@ -65,10 +61,17 @@ const ProductCard = ({ product }) => {
     <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col overflow-hidden">
       {/* Image Container */}
       <div className="relative aspect-square bg-slate-100 overflow-hidden">
-        <Link to={`/products/${productId}`} className="block w-full h-full">
+        <Link
+          to={`/products/${productId}`}
+          aria-label={`View details of ${product?.name || 'Product'}`}
+          className="block w-full h-full"
+        >
           <img
             src={imageUrl}
-            alt={product.name}
+            alt={product?.name || 'Product image'}
+            width="600"
+            height="600"
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
               e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';
@@ -77,7 +80,7 @@ const ProductCard = ({ product }) => {
         </Link>
 
         {/* Category Badge */}
-        {product.category && (
+        {product?.category && (
           <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs text-slate-700 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-xs">
             {product.category}
           </span>
@@ -85,11 +88,13 @@ const ProductCard = ({ product }) => {
 
         {/* Wishlist Button */}
         <button
+          type="button"
           onClick={handleWishlistToggle}
+          aria-label={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
           className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-xs shadow-xs transition ${
             isWishlisted
               ? 'bg-rose-50 text-rose-600 border border-rose-200'
-              : 'bg-white/90 text-slate-400 hover:text-rose-500 hover:bg-white'
+              : 'bg-white/90 text-slate-600 hover:text-rose-500 hover:bg-white'
           }`}
           title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
         >
@@ -100,34 +105,36 @@ const ProductCard = ({ product }) => {
       {/* Details */}
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
-          {product.brand && (
+          {product?.brand && (
             <span className="text-[11px] font-semibold text-indigo-600 tracking-wide uppercase">
               {product.brand}
             </span>
           )}
-          <Link to={`/products/${productId}`}>
+          <Link to={`/products/${productId}`} className="focus:outline-none">
             <h3 className="text-sm font-bold text-slate-800 line-clamp-2 mt-0.5 group-hover:text-indigo-600 transition">
-              {product.name}
+              {product?.name}
             </h3>
           </Link>
         </div>
 
         <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-400 block font-medium">Price</span>
+            <span className="text-xs text-slate-600 block font-medium">Price</span>
             <span className="text-base font-extrabold text-slate-900">
-              ${Number(product.price || 0).toFixed(2)}
+              ${Number(product?.price || 0).toFixed(2)}
             </span>
           </div>
 
           <button
+            type="button"
             onClick={handleCartClick}
-            disabled={loadingCart || product.stock === 0}
+            disabled={loadingCart || product?.stock === 0}
+            aria-label={`Add ${product?.name || 'product'} to cart`}
             className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-              product.stock === 0
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              product?.stock === 0
+                ? 'bg-slate-100 text-slate-500 cursor-not-allowed'
                 : added
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-emerald-700 text-white'
                 : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs'
             }`}
           >

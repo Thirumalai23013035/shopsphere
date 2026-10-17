@@ -7,6 +7,8 @@ const {admin} = require("../middleware/adminmiddleware");
 
 const {placeOrder,getOrders,getSingleOrder,getAllOrders,updateOrderStatus,updatePaymentStatus} = require("../controllers/OrderController");
 
+Router.post("/",protect,placeOrder);
+Router.get("/",protect,getOrders);
 Router.post("/place",protect,placeOrder);
 Router.get("/all",protect,admin,getAllOrders);
 Router.get("/myorders",protect,getOrders);

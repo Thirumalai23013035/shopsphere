@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { TOKEN_KEY } from '../utils/constants';
 
-const rawBaseURL = import.meta.env.VITE_API_URL || '';
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const rawBaseURL = isLocal ? 'http://localhost:3000' : (import.meta.env.VITE_API_URL || '');
 const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL;
 
 const api = axios.create({

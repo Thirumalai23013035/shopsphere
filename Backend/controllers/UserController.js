@@ -102,16 +102,16 @@ const registerUser = (asynchandler(async(req,res)=>{
 
 const loginAPI = (asynchandler(async(req,res)=>{
 
-    const {email,password} = req.body;
+    const { email, password } = req.body || {};
 
-    if (!email || !password) {
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
         return res.status(400).json({
             success: false,
             message: "Email and password are required"
         });
     }
 
-    const cleanEmail = String(email).toLowerCase().trim();
+    const cleanEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: cleanEmail });
 
     if(!user)

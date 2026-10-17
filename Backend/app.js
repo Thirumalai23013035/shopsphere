@@ -1,12 +1,24 @@
 const express = require("express")
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
+app.disable('x-powered-by');
+
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
+
 const corsOptions = {
     origin: [
-        "http://localhost:5173", 
+        "http://localhost:5173",
+        "http://localhost:3001",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3001",
         "https://shopsphere-weld-nu.vercel.app"
     ],
     credentials: true,
@@ -14,6 +26,15 @@ const corsOptions = {
     allowedHeaders: ["Content-Type", "Authorization"]
 };
 app.use(cors(corsOptions));
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: "Too many requests, please try again later." }
+});
+app.use(limiter);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -109,12 +130,21 @@ app.get("/", (req, res) => {
 });
 
 app.use("/users",userRouter);
+app.use("/auth",userRouter);
 app.use("/products",productRouter);
 app.use("/cart",cartRouter);
 app.use("/order",orderRouter);
+app.use("/orders",orderRouter);
 app.use("/review",reviewRouter);
 app.use("/wishlist",wishlistRouter);
 app.use("/admin",adminRouter);
+
+app.use("/api/users",userRouter);
+app.use("/api/auth",userRouter);
+app.use("/api/products",productRouter);
+app.use("/api/cart",cartRouter);
+app.use("/api/order",orderRouter);
+app.use("/api/orders",orderRouter);
 
 // Mongoose / Database error fallback middleware
 app.use((err, req, res, next) => {
